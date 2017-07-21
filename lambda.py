@@ -37,22 +37,17 @@ class CalculateRequest(Request):
     self.card_title = 'Calculate'
   
   def reprompt_text(self):
-    if self.is_valid:
-      return self.speech_output()
-    else:
-      return "I'm not sure what your height and weight is. " \
-              "You can tell me by saying, " \
-              "I am x centimeters high and I weight y kilos"
+    return self.speech_output()
   
   def speech_output(self):
     if self.is_valid:
       try:
-        calories = self.api.configure_me(getattr(self, 'height'), getattr(self, 'weight'), None, None)
-        return "With your height and weigth you should consume daily: " + calories + "!"
+        calories = self.api.calculate(getattr(self, 'height'), getattr(self, 'weight'), None, None)
+        return "Today you have already eaten: " + calories + "!"
       except RuntimeError:
         return "I'm having troubles communicating with the server. Please try again later."  
     else:
-      return "I'm not sure what your height and weight is. Please try again."
+      return "I'm not quite sure what you want. Please say it again"
 
   def is_valid(self):
     if getattr(self, 'type') != None:
@@ -256,33 +251,33 @@ def get_help_response():
   what_i_ate_msg = "or, you can tell if you ate something"
   calculate_msg = "or even ask me how many calories you had today"
   card_title = "Help"
-  speech_output = "Hey, Sofia here! " + configure_me_msg + what_i_ate_msg + calculate_msg + " yes, I know I am cool"
+  speech_output = "Hey, Sofia here, " + configure_me_msg + what_i_ate_msg + calculate_msg + ". Yes, I know I am cool"
                   
   # If the user either does not reply to the welcome message or says something
   # that is not understood, they will be prompted again with this text.
   reprompt_text = configure_me_msg + what_i_ate_msg + calculate_msg
 
   should_end_session = False
-  return build_response(session_attributes, build_speechlet_response(
+  return build_response({}, build_speechlet_response(
       card_title, speech_output, reprompt_text, should_end_session))
 
 def get_welcome_response():
-    """ If we wanted to initialize the session to have some attributes we could
-    add those here
-    """
+  """ If we wanted to initialize the session to have some attributes we could
+  add those here
+  """
 
-    session_attributes = {}
-    card_title = "Welcome"
-    speech_output = "Welcome to Sofia! " \
-                    "Please tell me your height, weight, age and gender" \
-                    "so that I can help you plan your calories"
-    # If the user either does not reply to the welcome message or says something
-    # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Please tell me your height, weight, age and gender" \
-                    "so that I can help you plan your calories"
-    should_end_session = False
-    return build_response(session_attributes, build_speechlet_response(
-        card_title, speech_output, reprompt_text, should_end_session))
+  session_attributes = {}
+  card_title = "Welcome"
+  speech_output = "Welcome to Sofia! " \
+                  "Please tell me your height, weight, age and gender" \
+                  "so that I can help you plan your calories"
+  # If the user either does not reply to the welcome message or says something
+  # that is not understood, they will be prompted again with this text.
+  reprompt_text = "Please tell me your height, weight, age and gender" \
+                  "so that I can help you plan your calories"
+  should_end_session = False
+  return build_response(session_attributes, build_speechlet_response(
+      card_title, speech_output, reprompt_text, should_end_session))
 
 
 def handle_session_end_request():
@@ -306,6 +301,13 @@ def configure(api, intent, session):
   configure_me_request = ConfigureMeRequest(api, intent, session)  
   return build_response({}, build_speechlet_response(
         configure_me_request.card_title, configure_me_request.speech_output(), configure_me_request.reprompt_text(), should_end_session))
+
+# Alexa Intent (Calculate)
+def calculate(api, intent, session):
+  should_end_session = False
+  calculate_request = CalculateRequest(api, intent, session)  
+  return build_response({}, build_speechlet_response(
+        calculate_request.card_title, calculate_request.speech_output(), calculate_request.reprompt_text(), should_end_session))
 
 def set_color_in_session(intent, session):
     """ Sets the color in the session and prepares the speech to reply to the
