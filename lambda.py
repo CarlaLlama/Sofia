@@ -7,6 +7,7 @@ For additional samples, visit the Alexa Skills Kit Getting Started guide at
 http://amzn.to/1LGWsLG
 """
 from __future__ import print_function
+import json
 from datetime import datetime, date, time
 import urllib2
 import urllib
@@ -15,10 +16,12 @@ import string
 from hashlib import sha1
 import hmac
 import time
+from fatsecret import Fatsecret
 
 # --------------- API Interface ----------------------
 
-oauth_consumer_key = "oauth_consumer_key=88705826bc964b5185709b58777d9b34"
+oauth_consumer_key = "88705826bc964b5185709b58777d9b34"
+oauth_secret_key = "e053a5709b5243569f730e5a5200e9ee"
 oauth_signature_method = "oauth_signature_method=HMAC-SHA1"
 oauth_timestamp = int(time.time())
 oauth_nonce = "oauth_nonce=" + ''.join(random.choice(string.lowercase) for i in range(7))
@@ -90,13 +93,15 @@ class ConfigureMeRequest(Request):
 
 
 ## TODO: ABSTRACT
-class WhatIAte(Request):
-  def __init__(self, API, intent, session):
+class WhatIAteRequest(Request):
+  def __init__(self, api, intent, session):
     self.parse_slots(intent)
     self.api = api
     self.card_title = 'WhatIAte'
+    self.servings = 1
 
   def reprompt_text(self):
+    return False
     if self.is_valid:
       return self.speech_output()
     else:
@@ -105,7 +110,7 @@ class WhatIAte(Request):
 
   def speech_output(self):
     try:
-      self.api.add_food(getattr(self, 'food_name'), getattr(self, 'servings'))
+      self.api.add_food(getattr(self, 'food_name'))
       return "Ok fatty naughty"
     except RuntimeError:
       return "I'm having troubles communicating with the server. Please try again later."  
@@ -122,85 +127,51 @@ def exercise(api, intent, session):
 class SofiaAPI:
   def __init__(self, intent_request, session):
     self.session = session
+    self.fs = Fatsecret(oauth_consumer_key, oauth_secret_key)
+    self.calorie_count = 0
     # self.request_date = datetime.strptime(intent_request['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
 
-  def send(self, data):
-    req = urllib2.Request(request_url, data)
-    response = urllib2.urlopen(req)
-    html = response.read()
-    return html
-
-  def calculate_oauth_signature(self, url):
-    key = "88705826bc964b5185709b58777d9b34&e053a5709b5243569f730e5a5200e9ee"
-    hashed = hmac.new(key, url, sha1)
-    # The signature
-    return hashed.digest().encode("base64").rstrip('\n')
-
-  def encode(self, list):
-    request_list = []
-    request_list.append(oauth_consumer_key)
-    request_list.append(oauth_signature_method)
-    request_list.append(oauth_timestamp)
-    request_list.append(oauth_nonce)
-    request_list.append(oauth_version)
-    request_list.append(format)
-
-    request_list = sort(request_list)
-
-    data = urllib.urlencode(request_list)
-    data = data.encode('Big5')
-    signature = calculate_oath_signature(data)
-    return send(data)
-
-
   # ------- Interface with the Intents ----------
-  def save_exercise(self, exercise_name, duration):
-    method = "method=exercises.get"
-    response = encode([method])
-    if response is not None:
-        exercise_name = response.exercise_types.exercise[0].exercise_name
-    method = "exercise_entries.commit_day"
-    #return encode([method, self.auth_token])
+  #def save_exercise(self, exercise_name, duration):
+    #method = "method":"exercises.get"
+   # response = encode([method])
+   # if response is not None:
+   #     exercise_name = response.exercise_types.exercise[0].exercise_name
+   # method = "exercise_entries.commit_day"
+   # #return encode([method, self.auth_token])
 
 
   def calculate(self, response_type):
-    if calorie_count < 500:
+    if self.calorie_count < 500:
         return "You have eaten way too little today! Only "+ calorie_count + " calories!"
-    elif calorie_count < 1000 and calorie_count > 500:
+    elif self.calorie_count < 1000 and calorie_count > 500:
         return "You are doing well today. You have eaten "+ calorie_count + " calories!"
-    elif calorie_count > 1000:
+    elif self.calorie_count > 1000:
         return "You have eaten way too much, you fatty!"
 
-  def add_food(self, food_name, servings):
-    method = "method=food.search"
-    response = encode([method])
-    if response is not None:
-        food_description = response.foods.food[0].food_description
-        food_id = "food_id=" + response.foods.food[0].food_id
-        food_name = "food_entry_name=" + response.foods.food[0].food_name
-        method = "method=food_entry.create"
-        serving_id = "serving_id=0"
-        number_of_units = "number_of_units=1"
-        meal = "meal=breakfast"
-        response = encode([food_id, method, food_name, serving_id, number_of_units, meal, self.auth_token])
-        get_calories(food_description)
-        return food_description
+  def add_food(self, food_name):
+    foods = self.fs.foods_search(food_name)
+    if foods is not None:
+        food_description = foods[0]['food_description']
+        print(food_description)
+        food_id = foods[0]['food_id']
+        food_name = foods[0]['food_name']
+        self.get_calories(food_description)
+        #self.fs.food_entry_create(food_id, food_name, 0, 1, "breakfast", date=None)
+        print(food_description)
     return "Could not find this food type."
 
   def get_calories(self, str):
       index = str.find("Calories: ")
       if index != -1:
-        str(index, 4)
-        cals = str.strip(['k','c', 'a', 'l', ' '])
-        calorie_count = calorie_count + int(cals)
+        str = str[index+9: index+13]
+        cals = str.strip(' ')
+        self.calorie_count = self.calorie_count + int(cals)
       else:
           return 0
 
   def configure_me(self, height, weight, age, gender):
-    method = "method=profile.create"
-    response = encode([method])
-    self.auth_token = "oauth_token=" + response.profile.auth_token
-    self.auth_secret = "oauth_secret=" + response.profile.auth_secret
+    self.fs.profile_create(user_id=None)
     if weight:
         if height:
             return set_weight(weight, height)
@@ -210,13 +181,7 @@ class SofiaAPI:
     #return self.calculate("calories")
 
   def set_weight(self, weight, height):
-      method = "method=weight.update"
-      current_weight_kg = "current_weight_kg="+weight
-      goal_weight_kg = "goal_weight_kg=100"
-      current_height_cm = "current_height_cm="+height
-
-      list = [method, current_height_cm, current_weight_kg, goal_weight_kg, self.oauth_token]
-      return encode(list)
+      self.fs.weight_update(weight, date=None, weight_type='kg', height_type='cm', goal_weight_kg=None, current_height_cm=None, comment=None)
 
 
 
@@ -453,3 +418,7 @@ def lambda_handler(event, context):
         return on_intent(event['request'], event['session'])
     elif event['request']['type'] == "SessionEndedRequest":
         return on_session_ended(event['request'], event['session'])
+
+
+event = json.loads("{\"session\":{\"sessionId\":\"SessionId.e17cc3f0-94aa-4b47-a30a-55bf8be958ac\",\"application\":{\"applicationId\":\"amzn1.ask.skill.85e484a6-4f2d-4479-b4da-9531ca7ce86e\"},\"attributes\":{},\"user\":{\"userId\":\"amzn1.ask.account.AFHYM6OD3H6B47CWKJBUX3SUJRAQAGGULBZS3LLZRTVWIHTFSREZ5JYATHVYV5KJM2IJOW7GRJRU55IOWOREMVQGAC4Q2YP7CYE2ETQKK2LUGOPFOCJWJOUQLIDUSYL5W6AGQTLZKAPVTYTHNA7HHPCWWVW4M33BUECLFOCLFOWD5JQ6M3HAIDVXRJTJ7HGMGECE7L2EYNTUB6A\"},\"new\":true},\"request\":{\"type\":\"IntentRequest\",\"requestId\":\"EdwRequestId.8fc14d74-595d-4d25-b1ce-27c2db537db2\",\"locale\":\"en-US\",\"timestamp\":\"2017-07-21T13:39:03Z\",\"intent\":{\"name\":\"WhatIAte\",\"slots\":{\"food_name\":{\"name\":\"food_name\",\"value\":\"donut\"},\"servings\":{\"name\":\"servings\"}}}},\"version\":\"1.0\"}")
+lambda_handler(event, None)

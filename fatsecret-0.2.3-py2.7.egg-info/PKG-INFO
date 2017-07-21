@@ -1,0 +1,19 @@
+Metadata-Version: 1.1
+Name: fatsecret
+Version: 0.2.3
+Summary: Python wrapper for FatSecret REST API
+Home-page: https://github.com/walexnelson/pyfatsecret
+Author: Alex Nelson
+Author-email: w.alexnelson@gmail.com
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
