@@ -6,6 +6,7 @@ as testing instructions are located at http://amzn.to/1LzFrj6
 For additional samples, visit the Alexa Skills Kit Getting Started guide at
 http://amzn.to/1LGWsLG
 """
+from datetime import datetime, date, time
 from __future__ import print_function
 
 import urllib
@@ -20,9 +21,9 @@ oauth_version = "oauth_version=1.0"
 request_url = "http://platform.fatsecret.com/rest/server.api"
 
 class SofiaAPI:
-  def __init__(self, user_id, timestamp):
-    self.user_id = user_id
-    self.timestamp = timestamp
+  def __init__(self, intent_request, session):
+    self.session = session
+    self.request_date = datetime.strptime(intent_request['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
 
   def send(self, data):
     req = urllib.request.Request(request_url, data)
@@ -55,18 +56,15 @@ class SofiaAPI:
 
   # ------- Interface with the Intents ----------
   def save_exercise(self, exercise_name, duration):
-    # Add values to database
     return True
 
   def calculate(self, response_type):
     return "20000 calories, you fatty"
 
   def add_food(self, food_name, servings):
-    # Add values to database
     return True
       
   def configure_me(self, height, weight, age, gender):
-    # Add values to database and then:
     return self.calculate("calories")
   
 
@@ -135,6 +133,17 @@ def handle_session_end_request():
 def create_favorite_color_attributes(favorite_color):
     return {"favoriteColor": favorite_color}
 
+# Alexa Intent (ConfigureMe)
+def configure(api, intent, session):
+  """ Configures user data
+  """
+  card_title = intent['name']
+  session_attributes = {}
+  should_end_session = False
+  speech_output = "I now know your height and weight " + \
+  reprompt_text = "" \
+  return build_response(session_attributes, build_speechlet_response(
+        card_title, speech_output, reprompt_text, should_end_session))
 
 def set_color_in_session(intent, session):
     """ Sets the color in the session and prepares the speech to reply to the
@@ -213,9 +222,11 @@ def on_intent(intent_request, session):
     intent = intent_request['intent']
     intent_name = intent_request['intent']['name']
 
+    api = SofiaAPI(intent_request, session)
+
     # Dispatch to your skill's intent handlers
     if intent_name == "ConfigureMe":
-        return set_color_in_session(intent, session)
+        return configure(api, intent, session)
     elif intent_name == "WhatIAte":
         return get_color_from_session(intent, session)
     elif intent_name == "Exercise":
