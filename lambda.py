@@ -11,12 +11,15 @@ from datetime import datetime, date, time
 import urllib
 import random
 import string
+from hashlib import sha1
+import hmac
+import time
 
 # --------------- API Interface ----------------------
 
 oauth_consumer_key = "oauth_consumer_key=88705826bc964b5185709b58777d9b34"
 oauth_signature_method = "oauth_signature_method=HMAC-SHA1"
-oauth_timestamp = time.time()
+oauth_timestamp = int(time.time())
 oauth_nonce = "oauth_nonce=" + ''.join(random.choice(string.lowercase) for i in range(7))
 oauth_version = "oauth_version=1.0"
 request_url = "http://platform.fatsecret.com/rest/server.api"
@@ -71,8 +74,11 @@ class SofiaAPI:
     html = response.read()
     return html
 
-  def calculate_oauth_signature(self):
-      # DON'T KNOW HOW TO DO THIS
+  def calculate_oauth_signature(self, url):
+    key = "88705826bc964b5185709b58777d9b34&e053a5709b5243569f730e5a5200e9ee"
+    hashed = hmac.new(key, url, sha1)
+    # The signature
+    return hashed.digest().encode("base64").rstrip('\n')
 
 
   def encode(self, list):
@@ -87,6 +93,7 @@ class SofiaAPI:
     request_list = sort(request_list)
 
     data = urllib.parse.urlencode(request_list)
+    signature = calculate_oath_signature(data)
     return send(data)
 
 
@@ -95,7 +102,7 @@ class SofiaAPI:
   def save_exercise(self, exercise_name, duration):
     method = "method=exercises.get"
     response = encode([method])
-    if response not null:
+    if response is not None:
         exercise_name = response.exercise_types.exercise[0].exercise_name
     method = "exercise_entries.commit_day"
     #return encode([method, self.auth_token])
@@ -112,7 +119,7 @@ class SofiaAPI:
   def add_food(self, food_name, servings):
     method = "method=food.search"
     response = encode([method])
-    if response not null:
+    if response is not None:
         food_description = response.foods.food[0].food_description
         food_id = "food_id=" + response.foods.food[0].food_id
         food_name = "food_entry_name=" + response.foods.food[0].food_name
