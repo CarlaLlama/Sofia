@@ -7,12 +7,10 @@ For additional samples, visit the Alexa Skills Kit Getting Started guide at
 http://amzn.to/1LGWsLG
 """
 from __future__ import print_function
-import json
 from datetime import datetime, date, time
 import urllib
 import random
 import string
-import myfitnesspal
 
 # --------------- API Interface ----------------------
 
@@ -74,10 +72,10 @@ class SofiaAPI:
     return html
 
   def calculate_oauth_signature(self):
+      # DON'T KNOW HOW TO DO THIS
 
 
   def encode(self, list):
-    # params is a json
     request_list = []
     request_list.append(oauth_consumer_key)
     request_list.append(oauth_signature_method)
@@ -90,14 +88,6 @@ class SofiaAPI:
 
     data = urllib.parse.urlencode(request_list)
     return send(data)
-
-  def parse_response(self, response):
-
-
-  def save_user_auth(self):
-
-      //profile.get_auth
-
 
 
 
@@ -143,7 +133,7 @@ class SofiaAPI:
         calorie_count = calorie_count + int(cals)
       else:
           return 0
-      
+
   def configure_me(self, height, weight, age, gender):
     method = "method=profile.create"
     response = encode([method])
@@ -166,7 +156,7 @@ class SofiaAPI:
       list = [method, current_height_cm, current_weight_kg, goal_weight_kg, self.oauth_token]
       return encode(list)
 
-  
+
 
 # --------------- Helpers that build all of the responses ----------------------
 
