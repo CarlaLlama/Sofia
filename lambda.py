@@ -32,6 +32,31 @@ class Request:
     for slot in intent['slots'].keys():
       if 'value' in intent['slots'][slot]:
         setattr(self, slot, intent['slots'][slot]['value'])
+
+class CalculateRequest(Request):
+  def __init__(self, api, intent):
+    self.parse_slots(intent)
+    self.api = api
+    self.card_title = 'Calculate'
+  
+  def reprompt_text(self):
+    return self.speech_output()
+  
+  def speech_output(self):
+    if self.is_valid:
+      try:
+        calories = self.api.calculate(getattr(self, 'height'), getattr(self, 'weight'), None, None)
+        return "Today you have already eaten: " + calories + "!"
+      except RuntimeError:
+        return "I'm having troubles communicating with the server. Please try again later."  
+    else:
+      return "I'm not quite sure what you want. Please say it again"
+
+  def is_valid(self):
+    if getattr(self, 'type') != None:
+      return True
+    return False
+
     
 class ConfigureMeRequest(Request):
   def __init__(self, api, intent, session):
@@ -51,7 +76,7 @@ class ConfigureMeRequest(Request):
     if self.is_valid:
       try:
         calories = self.api.configure_me(getattr(self, 'height'), getattr(self, 'weight'), None, None)
-        return "With your height and weigth we calculate that you should consume daily: " + calories + "!"
+        return "With your height and weigth you should consume daily: " + calories + "!"
       except RuntimeError:
         return "I'm having troubles communicating with the server. Please try again later."  
     else:
@@ -62,24 +87,55 @@ class ConfigureMeRequest(Request):
       return True
     return False
 
+
+## TODO: ABSTRACT
+class WhatIAte(Request):
+  def __init__(self, API, intent, session):
+    self.parse_slots(intent)
+    self.api = api
+    self.card_title = 'WhatIAte'
+
+  def reprompt_text(self):
+    if self.is_valid:
+      return self.speech_output()
+    else:
+      return "I'm not sure what did you eat" \
+              "You can tell me for example, I ate 4 donuts"
+
+  def speech_output(self):
+    try:
+      self.api.add_food(getattr(self, 'food_name'), getattr(self, 'servings'))
+      return "Ok fatty naughty"
+    except RuntimeError:
+      return "I'm having troubles communicating with the server. Please try again later."  
+
+def what_I_ate(api, intent, session):
+  
+  should_end_session = False
+  what_I_ate_request = WhatIAteRequest(api, intent, session)  
+  return build_response({}, build_speechlet_response(
+        what_I_ate_request.card_title, what_I_ate_request.speech_output(), what_I_ate_request.reprompt_text(), should_end_session))
+
+def exercise(api, intent, session):
+  return False
+
 class SofiaAPI:
   def __init__(self, intent_request, session):
     client = myfitnesspal.Client('intern_hackathon')
     self.session = session
-    self.request_date = datetime.strptime(intent_request['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+    # self.request_date = datetime.strptime(intent_request['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
 
   def send(self, data):
     req = urllib.request.Request(request_url, data)
     response = urllib.request.urlopen(req)
     html = response.read()
     return html
-
+  
   def calculate_oauth_signature(self, url):
     key = "88705826bc964b5185709b58777d9b34&e053a5709b5243569f730e5a5200e9ee"
     hashed = hmac.new(key, url, sha1)
     # The signature
     return hashed.digest().encode("base64").rstrip('\n')
-
 
   def encode(self, list):
     request_list = []
@@ -95,7 +151,6 @@ class SofiaAPI:
     data = urllib.parse.urlencode(request_list)
     signature = calculate_oath_signature(data)
     return send(data)
-
 
 
   # ------- Interface with the Intents ----------
@@ -198,23 +253,41 @@ def build_response(session_attributes, speechlet_response):
 
 # --------------- Functions that control the skill's behavior ------------------
 
-def get_welcome_response():
-    """ If we wanted to initialize the session to have some attributes we could
+def get_help_response():
+  """ If we wanted to initialize the session to have some attributes we could
     add those here
     """
+  configure_me_msg = "You can tell me your height, weight, age and gender so that I can help you plan your calories" 
+  what_i_ate_msg = "or, you can tell if you ate something"
+  calculate_msg = "or even ask me how many calories you had today"
+  card_title = "Help"
+  speech_output = "Hey, Sofia here, " + configure_me_msg + what_i_ate_msg + calculate_msg + ". Yes, I know I am cool"
+                  
+  # If the user either does not reply to the welcome message or says something
+  # that is not understood, they will be prompted again with this text.
+  reprompt_text = configure_me_msg + what_i_ate_msg + calculate_msg
 
-    session_attributes = {}
-    card_title = "Welcome"
-    speech_output = "Welcome to Sofia! " \
-                    "Please tell me your height, weight, age and gender" \
-                    "so that I can help you plan your calories"
-    # If the user either does not reply to the welcome message or says something
-    # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Please tell me your height, weight, age and gender" \
-                    "so that I can help you plan your calories"
-    should_end_session = False
-    return build_response(session_attributes, build_speechlet_response(
-        card_title, speech_output, reprompt_text, should_end_session))
+  should_end_session = False
+  return build_response({}, build_speechlet_response(
+      card_title, speech_output, reprompt_text, should_end_session))
+
+def get_welcome_response():
+  """ If we wanted to initialize the session to have some attributes we could
+  add those here
+  """
+
+  session_attributes = {}
+  card_title = "Welcome"
+  speech_output = "Welcome to Sofia! " \
+                  "Please tell me your height, weight, age and gender" \
+                  "so that I can help you plan your calories"
+  # If the user either does not reply to the welcome message or says something
+  # that is not understood, they will be prompted again with this text.
+  reprompt_text = "Please tell me your height, weight, age and gender" \
+                  "so that I can help you plan your calories"
+  should_end_session = False
+  return build_response(session_attributes, build_speechlet_response(
+      card_title, speech_output, reprompt_text, should_end_session))
 
 
 def handle_session_end_request():
@@ -238,6 +311,13 @@ def configure(api, intent, session):
   configure_me_request = ConfigureMeRequest(api, intent, session)  
   return build_response({}, build_speechlet_response(
         configure_me_request.card_title, configure_me_request.speech_output(), configure_me_request.reprompt_text(), should_end_session))
+
+# Alexa Intent (Calculate)
+def calculate(api, intent, session):
+  should_end_session = False
+  calculate_request = CalculateRequest(api, intent, session)  
+  return build_response({}, build_speechlet_response(
+        calculate_request.card_title, calculate_request.speech_output(), calculate_request.reprompt_text(), should_end_session))
 
 def set_color_in_session(intent, session):
     """ Sets the color in the session and prepares the speech to reply to the
@@ -322,13 +402,13 @@ def on_intent(intent_request, session):
     if intent_name == "ConfigureMe":
         return configure(api, intent, session)
     elif intent_name == "WhatIAte":
-        return get_color_from_session(intent, session)
+        return what_I_ate(api, intent, session)
     elif intent_name == "Exercise":
-        return get_color_from_session(intent, session)
+        return exercise(api, intent, session)
     elif intent_name == "Calculate":
         return set_color_in_session(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
-        return get_welcome_response()
+        return get_help_response()
     elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
         return handle_session_end_request()
     else:
