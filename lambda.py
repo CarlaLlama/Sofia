@@ -9,7 +9,6 @@ http://amzn.to/1LGWsLG
 from __future__ import print_function
 import json
 from datetime import datetime, date, time
-import urllib2
 import urllib
 import random
 import string
@@ -116,13 +115,39 @@ class WhatIAteRequest(Request):
       return "I'm having troubles communicating with the server. Please try again later."  
 
 def what_I_ate(api, intent, session):
+  
   should_end_session = False
   what_I_ate_request = WhatIAteRequest(api, intent, session)  
   return build_response({}, build_speechlet_response(
         what_I_ate_request.card_title, what_I_ate_request.speech_output(), what_I_ate_request.reprompt_text(), should_end_session))
 
+
+## TODO: ABSTRACT
+class Exercise(Request):
+  def __init__(self, API, intent, session):
+    self.parse_slots(intent)
+    self.api = api
+    self.card_title = 'Exercise'
+
+  def reprompt_text(self):
+    if self.is_valid:
+      return self.speech_output()
+    else:
+      return "I'm not sure what exercise did you do" \
+              "You can tell me for example, I played yoga for an hour"
+
+  def speech_output(self):
+    try:
+      self.api.add_food(getattr(self, 'exercise_name'), getattr(self, 'duration'))
+      return "Good for you"
+    except RuntimeError:
+      return "I'm having troubles communicating with the server. Please try again later."  
+
 def exercise(api, intent, session):
-  return False
+  should_end_session = False
+  exercise = Exercise(api, intent, session)  
+  return build_response({}, build_speechlet_response(
+        exercise.card_title, exercise.speech_output(), exercise.reprompt_text(), should_end_session))
 
 class SofiaAPI:
   def __init__(self, intent_request, session):
@@ -139,7 +164,6 @@ class SofiaAPI:
    #     exercise_name = response.exercise_types.exercise[0].exercise_name
    # method = "exercise_entries.commit_day"
    # #return encode([method, self.auth_token])
-
 
   def calculate(self, response_type):
     if self.calorie_count < 500:
@@ -178,7 +202,7 @@ class SofiaAPI:
         else:
             return set_weight(weight, 180)
 
-    #return self.calculate("calories")
+    return self.calculate("calories")
 
   def set_weight(self, weight, height):
       self.fs.weight_update(weight, date=None, weight_type='kg', height_type='cm', goal_weight_kg=None, current_height_cm=None, comment=None)
