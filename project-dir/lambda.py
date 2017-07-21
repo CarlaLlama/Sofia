@@ -198,9 +198,9 @@ class SofiaAPI:
     self.fs.profile_create(user_id=None)
     if weight:
         if height:
-            return set_weight(weight, height)
+            return self.set_weight(weight, height)
         else:
-            return set_weight(weight, 180)
+            return self.set_weight(weight, 180)
 
     return self.calculate("calories")
 
