@@ -100,7 +100,6 @@ class WhatIAteRequest(Request):
     self.servings = 1
 
   def reprompt_text(self):
-    return False
     if self.is_valid:
       return self.speech_output()
     else:
