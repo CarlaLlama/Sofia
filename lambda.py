@@ -100,7 +100,6 @@ class WhatIAteRequest(Request):
     self.servings = 1
 
   def reprompt_text(self):
-    return False
     if self.is_valid:
       return self.speech_output()
     else:
@@ -112,7 +111,12 @@ class WhatIAteRequest(Request):
       calories = self.api.add_food(getattr(self, 'food_name'))
       return "Ok, you just had" + calories + " calories"
     except RuntimeError:
-      return "I'm having troubles communicating with the server. Please try again later."  
+      return "I'm having troubles communicating with the server. Please try again later."
+
+  def is_valid(self):
+    if self.getattr(self, 'food_name') is not None and self.getattr(self, 'servings') is not None:
+      return True
+    return False
 
 def what_I_ate(api, intent, session):
   should_end_session = False
@@ -141,6 +145,11 @@ class Exercise(Request):
       return "Good for you"
     except RuntimeError:
       return "I'm having troubles communicating with the server. Please try again later."  
+  
+  def is_valid(self):
+    if self.getattr(self, 'exercise_name') is not None and self.getattr(self, 'duration') is not None:
+      return True
+    return False
 
 def exercise(api, intent, session):
   should_end_session = False
