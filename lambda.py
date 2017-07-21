@@ -59,6 +59,38 @@ class ConfigureMeRequest(Request):
       return True
     return False
 
+
+## TODO: ABSTRACT
+class WhatIAte(Request):
+  def __init__(self, API, intent, session):
+    self.parse_slots(intent)
+    self.api = api
+    self.card_title = 'WhatIAte'
+
+  def reprompt_text(self):
+    if self.is_valid:
+      return self.speech_output()
+    else:
+      return "I'm not sure what did you eat" \
+              "You can tell me for example, I ate 4 donuts"
+
+  def speech_output(self):
+    try:
+      self.api.add_food(getattr(self, 'food_name'), getattr(self, 'servings'))
+      return "Ok fatty naughty"
+    except RuntimeError:
+      return "I'm having troubles communicating with the server. Please try again later."  
+
+def what_I_ate(api, intent, session):
+  
+  should_end_session = False
+  what_I_ate_request = WhatIAteRequest(api, intent, session)  
+  return build_response({}, build_speechlet_response(
+        what_I_ate_request.card_title, what_I_ate_request.speech_output(), what_I_ate_request.reprompt_text(), should_end_session))
+
+def exercise(api, intent, session):
+  return False
+
 class SofiaAPI:
   def __init__(self, intent_request, session):
     client = myfitnesspal.Client('intern_hackathon')
@@ -88,7 +120,6 @@ class SofiaAPI:
 
     data = urllib.parse.urlencode(request_list)
     return send(data)
-
 
 
   # ------- Interface with the Intents ----------
@@ -315,9 +346,9 @@ def on_intent(intent_request, session):
     if intent_name == "ConfigureMe":
         return configure(api, intent, session)
     elif intent_name == "WhatIAte":
-        return get_color_from_session(intent, session)
+        return what_I_ate(api, intent, session)
     elif intent_name == "Exercise":
-        return get_color_from_session(intent, session)
+        return exercise(api, intent, session)
     elif intent_name == "Calculate":
         return set_color_in_session(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
