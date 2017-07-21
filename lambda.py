@@ -86,7 +86,7 @@ class ConfigureMeRequest(Request):
       return "I'm not sure what your height and weight is. Please try again."
 
   def is_valid(self):
-    if self.height != None and self.weight != None:
+    if getattr(self, 'height') is not None, getattr(self, 'weight') != None:
       return True
     return False
 
@@ -110,12 +110,11 @@ class WhatIAteRequest(Request):
   def speech_output(self):
     try:
       calories = self.api.add_food(getattr(self, 'food_name'))
-      return "Ok, you just had" + calories
+      return "Ok, you just had" + calories + " calories"
     except RuntimeError:
       return "I'm having troubles communicating with the server. Please try again later."  
 
 def what_I_ate(api, intent, session):
-  
   should_end_session = False
   what_I_ate_request = WhatIAteRequest(api, intent, session)  
   return build_response({}, build_speechlet_response(
@@ -182,7 +181,7 @@ class SofiaAPI:
         food_name = foods[0]['food_name']
         #self.fs.food_entry_create(food_id, food_name, 0, 1, "breakfast", date=None)
         print(food_description)
-        self.get_calories(food_description)
+        return self.get_calories(food_description)
     return "Could not find this food type."
 
   def get_calories(self, str):
@@ -197,14 +196,11 @@ class SofiaAPI:
   def configure_me(self, height, weight, age, gender):
       return "2000"
     # self.fs.profile_create(user_id=None)
-
     # if weight:
     #     if height:
     #         return self.set_weight(weight, height)
     #     else:
     #         return self.set_weight(weight, 180)
-
-    return self.calculate("calories")
 
   def set_weight(self, weight, height):
       self.fs.weight_update(weight, date=None, weight_type='kg', height_type='cm', goal_weight_kg=None, current_height_cm=None, comment=None)
@@ -248,9 +244,9 @@ def get_help_response():
   """ If we wanted to initialize the session to have some attributes we could
     add those here
     """
-  configure_me_msg = "You can tell me your height, weight, age and gender so that I can help you plan your calories" 
-  what_i_ate_msg = "or, you can tell if you ate something"
-  calculate_msg = "or even ask me how many calories you had today"
+  configure_me_msg = "You can tell me your height, weight, age and gender so that I can help you plan your calories " 
+  what_i_ate_msg = "or, you can tell if you ate something "
+  calculate_msg = "or even ask me how many calories you had today "
   card_title = "Help"
   speech_output = "Hey, Sofia here, " + configure_me_msg + what_i_ate_msg + calculate_msg + ". Yes, I know I am cool"
                   
