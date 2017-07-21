@@ -1,0 +1,60 @@
+{
+	"intents": [
+    {
+      "intent": "ConfigureMe",
+      "slots": [
+        {
+          "name": "height",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "weight",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "age",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "gender",
+          "type": "Sofia.GENDER"
+        }
+      ]
+    },
+    {
+      "intent": "WhatIAte",
+      "slots": [
+        {
+          "name": "food_name",
+          "type": "AMAZON.Food"
+        },
+        {
+            "name": "servings",
+            "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "Exercise",
+      "slots": [
+        {
+          "name": "exercise_name",
+          "type": "AMAZON.Sport"
+        },
+        {
+          "name": "duration",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "Calculate",
+      "slots": [
+        {
+          "name": "type",
+          "type": "Sofia.RESPONSE_TYPE"
+        }
+      ]
+    }
+  ]
+}
