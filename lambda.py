@@ -6,15 +6,37 @@ as testing instructions are located at http://amzn.to/1LzFrj6
 For additional samples, visit the Alexa Skills Kit Getting Started guide at
 http://amzn.to/1LGWsLG
 """
-
+import urllib.parse
+import urllib.request
 from __future__ import print_function
 
 # --------------- API Interface ----------------------
+
+oauth_consumer_key = "oauth_consumer_key=Your consumer key"
+oauth_signature_method = "oauth_signature_method=HMAC-SHA1"
+oauth_timestamp = "oauth_timestamp=Date"
+oauth_nonce = "oauth_nonce=A random string"
+oauth_version = "oauth_version=1.0"
+request_url = "http://platform.fatsecret.com/rest/server.api"
 
 class SofiaAPI:
   def __init__(self, user_id, timestamp):
     self.user_id = user_id
     self.timestamp = timestamp
+
+  def send(data):
+    req = urllib.request.Request(request_url, data)
+    response = urllib.request.urlopen(req)
+    html = response.read()
+    print(html)
+    return html
+
+  def encode(params):
+    # params is a list
+    data = urllib.parse.urlencode(params)
+    send(data)
+
+
 
   # ------- Interface with the Intents ----------
   def save_exercise(self, exercise_name, duration):
@@ -30,6 +52,9 @@ class SofiaAPI:
       
   def configure_me(self, height, weight, age, gender):
     return True
+
+
+
   
 
 # --------------- Helpers that build all of the responses ----------------------
