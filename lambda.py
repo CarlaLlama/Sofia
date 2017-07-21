@@ -8,6 +8,7 @@ http://amzn.to/1LGWsLG
 """
 from __future__ import print_function
 from datetime import datetime, date, time
+import urllib2
 import urllib
 import random
 import string
@@ -110,7 +111,6 @@ class WhatIAte(Request):
       return "I'm having troubles communicating with the server. Please try again later."  
 
 def what_I_ate(api, intent, session):
-  
   should_end_session = False
   what_I_ate_request = WhatIAteRequest(api, intent, session)  
   return build_response({}, build_speechlet_response(
@@ -125,8 +125,8 @@ class SofiaAPI:
     # self.request_date = datetime.strptime(intent_request['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
 
   def send(self, data):
-    req = urllib.request.Request(request_url, data)
-    response = urllib.request.urlopen(req)
+    req = urllib2.Request(request_url, data)
+    response = urllib2.urlopen(req)
     html = response.read()
     return html
 
@@ -147,7 +147,8 @@ class SofiaAPI:
 
     request_list = sort(request_list)
 
-    data = urllib.parse.urlencode(request_list)
+    data = urllib.urlencode(request_list)
+    data = data.encode('Big5')
     signature = calculate_oath_signature(data)
     return send(data)
 
