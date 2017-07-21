@@ -24,17 +24,34 @@ class SofiaAPI:
     self.user_id = user_id
     self.timestamp = timestamp
 
-  def send(data):
+  def send(self, data):
     req = urllib.request.Request(request_url, data)
     response = urllib.request.urlopen(req)
     html = response.read()
     print(html)
     return html
 
-  def encode(params):
-    # params is a list
+  def encode(self, params):
+    # params is a json
+    params = alphabetisize(params)
     data = urllib.parse.urlencode(params)
     send(data)
+
+  def alphabetisize(self, params):
+      params.sort(lambda x, y: compare_strings(x, y))
+      return params
+
+  def compare_strings(self, a, b):
+    # Assuming you want case-insensitive comparison
+    a = a.lower()
+    b = b.lower()
+    if a < b:
+        return -1
+    elif a > b:
+        return 1
+    else:
+        return 0
+
 
   # ------- Interface with the Intents ----------
   def save_exercise(self, exercise_name, duration):
