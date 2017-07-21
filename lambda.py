@@ -6,9 +6,8 @@ as testing instructions are located at http://amzn.to/1LzFrj6
 For additional samples, visit the Alexa Skills Kit Getting Started guide at
 http://amzn.to/1LGWsLG
 """
-from datetime import datetime, date, time
 from __future__ import print_function
-
+from datetime import datetime, date, time
 import urllib
 
 # --------------- API Interface ----------------------
@@ -140,8 +139,8 @@ def configure(api, intent, session):
   card_title = intent['name']
   session_attributes = {}
   should_end_session = False
-  speech_output = "I now know your height and weight " + \
-  reprompt_text = "" \
+  speech_output = "I now know your height and weight "
+  reprompt_text = "" 
   return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
 
