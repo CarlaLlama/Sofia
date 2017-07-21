@@ -141,7 +141,7 @@ class ExerciseRequest(Request):
 
   def speech_output(self):
     try:
-      self.api.add_food(getattr(self, 'exercise_name'), getattr(self, 'duration'))
+    #   self.api.add_food(getattr(self, 'exercise_name'), getattr(self, 'duration'))
       return "Good for you"
     except RuntimeError:
       return "I'm having troubles communicating with the server. Please try again later."  
@@ -403,7 +403,7 @@ def on_intent(intent_request, session):
     elif intent_name == "Exercise":
         return exercise(api, intent, session)
     elif intent_name == "Calculate":
-        return set_color_in_session(intent, session)
+        return calculate(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
         return get_help_response()
     elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
