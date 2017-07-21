@@ -9,18 +9,24 @@ http://amzn.to/1LGWsLG
 from __future__ import print_function
 from datetime import datetime, date, time
 import urllib
+import random
+import string
+import myfitnesspal
 
 # --------------- API Interface ----------------------
 
-oauth_consumer_key = "oauth_consumer_key=Your consumer key"
+oauth_consumer_key = "oauth_consumer_key=88705826bc964b5185709b58777d9b34"
 oauth_signature_method = "oauth_signature_method=HMAC-SHA1"
-oauth_timestamp = "oauth_timestamp=Date"
-oauth_nonce = "oauth_nonce=A random string"
+oauth_timestamp = time.time()
+oauth_nonce = "oauth_nonce=" + ''.join(random.choice(string.lowercase) for i in range(7))
 oauth_version = "oauth_version=1.0"
 request_url = "http://platform.fatsecret.com/rest/server.api"
+format = "format=json"
+calorie_count = 0
 
 class SofiaAPI:
   def __init__(self, intent_request, session):
+    client = myfitnesspal.Client('intern_hackathon')
     self.session = session
     self.request_date = datetime.strptime(intent_request['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
 
@@ -28,43 +34,101 @@ class SofiaAPI:
     req = urllib.request.Request(request_url, data)
     response = urllib.request.urlopen(req)
     html = response.read()
-    print(html)
     return html
 
-  def encode(self, params):
+  def calculate_oauth_signature(self):
+
+
+  def encode(self, list):
     # params is a json
-    params = alphabetisize(params)
-    data = urllib.parse.urlencode(params)
-    send(data)
+    request_list = []
+    request_list.append(oauth_consumer_key)
+    request_list.append(oauth_signature_method)
+    request_list.append(oauth_timestamp)
+    request_list.append(oauth_nonce)
+    request_list.append(oauth_version)
+    request_list.append(format)
 
-  def alphabetisize(self, params):
-      params.sort(lambda x, y: compare_strings(x, y))
-      return params
+    request_list = sort(request_list)
 
-  def compare_strings(self, a, b):
-    # Assuming you want case-insensitive comparison
-    a = a.lower()
-    b = b.lower()
-    if a < b:
-        return -1
-    elif a > b:
-        return 1
-    else:
-        return 0
+    data = urllib.parse.urlencode(request_list)
+    return send(data)
+
+  def parse_response(self, response):
+
+
+  def save_user_auth(self):
+
+      //profile.get_auth
+
+
 
 
   # ------- Interface with the Intents ----------
   def save_exercise(self, exercise_name, duration):
-    return True
+    method = "method=exercises.get"
+    response = encode([method])
+    if response not null:
+        exercise_name = response.exercise_types.exercise[0].exercise_name
+    method = "exercise_entries.commit_day"
+    #return encode([method, self.auth_token])
+
 
   def calculate(self, response_type):
-    return "20000 calories, you fatty"
+    if calorie_count < 500:
+        return "You have eaten way too little today! Only "+ calorie_count + " calories!"
+    elif calorie_count < 1000 and calorie_count > 500:
+        return "You are doing well today. You have eaten "+ calorie_count + " calories!"
+    elif calorie_count > 1000:
+        return "You have eaten way too much, you fatty!"
 
   def add_food(self, food_name, servings):
-    return True
+    method = "method=food.search"
+    response = encode([method])
+    if response not null:
+        food_description = response.foods.food[0].food_description
+        food_id = "food_id=" + response.foods.food[0].food_id
+        food_name = "food_entry_name=" + response.foods.food[0].food_name
+        method = "method=food_entry.create"
+        serving_id = "serving_id=0"
+        number_of_units = "number_of_units=1"
+        meal = "meal=breakfast"
+        response = encode([food_id, method, food_name, serving_id, number_of_units, meal, self.auth_token])
+        get_calories(food_description)
+        return food_description
+    return "Could not find this food type."
+
+  def get_calories(self, str):
+      index = str.find("Calories: ")
+      if index != -1:
+        str(index, 4)
+        cals = str.strip(['k','c', 'a', 'l', ' '])
+        calorie_count = calorie_count + int(cals)
+      else:
+          return 0
       
   def configure_me(self, height, weight, age, gender):
-    return self.calculate("calories")
+    method = "method=profile.create"
+    response = encode([method])
+    self.auth_token = "oauth_token=" + response.profile.auth_token
+    self.auth_secret = "oauth_secret=" + response.profile.auth_secret
+    if weight:
+        if height:
+            return set_weight(weight, height)
+        else:
+            return set_weight(weight, 180)
+
+    #return self.calculate("calories")
+
+  def set_weight(self, weight, height):
+      method = "method=weight.update"
+      current_weight_kg = "current_weight_kg="+weight
+      goal_weight_kg = "goal_weight_kg=100"
+      current_height_cm = "current_height_cm="+height
+
+      list = [method, current_height_cm, current_weight_kg, goal_weight_kg, self.oauth_token]
+      return encode(list)
+
   
 
 # --------------- Helpers that build all of the responses ----------------------
