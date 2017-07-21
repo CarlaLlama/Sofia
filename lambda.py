@@ -6,9 +6,9 @@ as testing instructions are located at http://amzn.to/1LzFrj6
 For additional samples, visit the Alexa Skills Kit Getting Started guide at
 http://amzn.to/1LGWsLG
 """
-import urllib.parse
-import urllib.request
 from __future__ import print_function
+
+import urllib
 
 # --------------- API Interface ----------------------
 
@@ -36,13 +36,11 @@ class SofiaAPI:
     data = urllib.parse.urlencode(params)
     send(data)
 
-
-
   # ------- Interface with the Intents ----------
   def save_exercise(self, exercise_name, duration):
     return True
 
-  def calculate(self, response_type)
+  def calculate(self, response_type):
     return "20000 calories, you fatty"
 
   def add_food(self, food_name, servings):
