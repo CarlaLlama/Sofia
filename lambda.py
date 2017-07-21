@@ -38,21 +38,19 @@ class SofiaAPI:
 
   # ------- Interface with the Intents ----------
   def save_exercise(self, exercise_name, duration):
+    # Add values to database
     return True
 
   def calculate(self, response_type):
     return "20000 calories, you fatty"
 
   def add_food(self, food_name, servings):
-    if food_name == "Donut":
-      return True
-    return False
+    # Add values to database
+    return True
       
   def configure_me(self, height, weight, age, gender):
-    return True
-
-
-
+    # Add values to database and then:
+    return self.calculate("calories")
   
 
 # --------------- Helpers that build all of the responses ----------------------
@@ -95,13 +93,13 @@ def get_welcome_response():
 
     session_attributes = {}
     card_title = "Welcome"
-    speech_output = "Welcome to the Alexa Skills Kit sample. " \
-                    "Please tell me your favorite color by saying, " \
-                    "my favorite color is red"
+    speech_output = "Welcome to Sofia! " \
+                    "Please tell me your height, weight, age and gender" \
+                    "so that I can help you plan your calories"
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Please tell me your favorite color by saying, " \
-                    "my favorite color is red."
+    reprompt_text = "Please tell me your height, weight, age and gender" \
+                    "so that I can help you plan your calories"
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -183,7 +181,6 @@ def on_launch(launch_request, session):
     """ Called when the user launches the skill without specifying what they
     want
     """
-
     print("on_launch requestId=" + launch_request['requestId'] +
           ", sessionId=" + session['sessionId'])
     # Dispatch to your skill's launch
