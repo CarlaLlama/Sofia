@@ -9,6 +9,28 @@ http://amzn.to/1LGWsLG
 
 from __future__ import print_function
 
+# --------------- API Interface ----------------------
+
+class SofiaAPI:
+  def __init__(self, user_id, timestamp):
+    self.user_id = user_id
+    self.timestamp = timestamp
+
+  # ------- Interface with the Intents ----------
+  def save_exercise(self, exercise_name, duration):
+    return True
+
+  def calculate(self, response_type)
+    return "20000 calories, you fatty"
+
+  def add_food(self, food_name, servings):
+    if food_name == "Donut":
+      return True
+    return False
+      
+  def configure_me(self, height, weight, age, gender):
+    return True
+  
 
 # --------------- Helpers that build all of the responses ----------------------
 
@@ -155,10 +177,14 @@ def on_intent(intent_request, session):
     intent_name = intent_request['intent']['name']
 
     # Dispatch to your skill's intent handlers
-    if intent_name == "MyColorIsIntent":
+    if intent_name == "ConfigureMe":
         return set_color_in_session(intent, session)
-    elif intent_name == "WhatsMyColorIntent":
+    elif intent_name == "WhatIAte":
         return get_color_from_session(intent, session)
+    elif intent_name == "Exercise":
+        return get_color_from_session(intent, session)
+    elif intent_name == "Calculate":
+        return set_color_in_session(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
         return get_welcome_response()
     elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
@@ -191,9 +217,9 @@ def lambda_handler(event, context):
     prevent someone else from configuring a skill that sends requests to this
     function.
     """
-    # if (event['session']['application']['applicationId'] !=
-    #         "amzn1.echo-sdk-ams.app.[unique-value-here]"):
-    #     raise ValueError("Invalid Application ID")
+    if (event['session']['application']['applicationId'] !=
+            "amzn1.ask.skill.85e484a6-4f2d-4479-b4da-9531ca7ce86e"):
+        raise ValueError("Invalid Application ID")
 
     if event['session']['new']:
         on_session_started({'requestId': event['request']['requestId']},
