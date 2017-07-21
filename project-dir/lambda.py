@@ -79,14 +79,14 @@ class ConfigureMeRequest(Request):
     if self.is_valid:
       try:
         calories = self.api.configure_me(getattr(self, 'height'), getattr(self, 'weight'), None, None)
-        return "With your height and weigth you should consume daily: " + calories + "!"
+        return "With your height and weigth you should consume daily: " + calories + " calories!"
       except RuntimeError:
         return "I'm having troubles communicating with the server. Please try again later."  
     else:
       return "I'm not sure what your height and weight is. Please try again."
 
   def is_valid(self):
-    if self.height != None and self.weight != None:
+    if getattr(self, 'height') is not None and getattr(self, 'weight') is not None:
       return True
     return False
 
@@ -100,7 +100,6 @@ class WhatIAteRequest(Request):
     self.servings = 1
 
   def reprompt_text(self):
-    return False
     if self.is_valid:
       return self.speech_output()
     else:
@@ -112,10 +111,14 @@ class WhatIAteRequest(Request):
       calories = self.api.add_food(getattr(self, 'food_name'))
       return "Ok, you just had" + calories + " calories"
     except RuntimeError:
-      return "I'm having troubles communicating with the server. Please try again later."  
+      return "I'm having troubles communicating with the server. Please try again later."
+
+  def is_valid(self):
+    if self.getattr(self, 'food_name') is not None and self.getattr(self, 'servings') is not None:
+      return True
+    return False
 
 def what_I_ate(api, intent, session):
-  
   should_end_session = False
   what_I_ate_request = WhatIAteRequest(api, intent, session)  
   return build_response({}, build_speechlet_response(
@@ -123,8 +126,8 @@ def what_I_ate(api, intent, session):
 
 
 ## TODO: ABSTRACT
-class Exercise(Request):
-  def __init__(self, API, intent, session):
+class ExerciseRequest(Request):
+  def __init__(self, api, intent, session):
     self.parse_slots(intent)
     self.api = api
     self.card_title = 'Exercise'
@@ -142,10 +145,15 @@ class Exercise(Request):
       return "Good for you"
     except RuntimeError:
       return "I'm having troubles communicating with the server. Please try again later."  
+  
+  def is_valid(self):
+    if self.getattr(self, 'exercise_name') is not None and self.getattr(self, 'duration') is not None:
+      return True
+    return False
 
 def exercise(api, intent, session):
   should_end_session = False
-  exercise = Exercise(api, intent, session)  
+  exercise = ExerciseRequest(api, intent, session)  
   return build_response({}, build_speechlet_response(
         exercise.card_title, exercise.speech_output(), exercise.reprompt_text(), should_end_session))
 
@@ -191,8 +199,9 @@ class SofiaAPI:
         str = str[index+9: index+13]
         cals = str.strip(' ')
         self.calorie_count = self.calorie_count + int(cals)
+        return cals
       else:
-          return 0
+        return 0
 
   def configure_me(self, height, weight, age, gender):
       return "2000"
