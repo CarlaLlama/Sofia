@@ -114,7 +114,7 @@ class WhatIAteRequest(Request):
       return "I'm having troubles communicating with the server. Please try again later."
 
   def is_valid(self):
-    if self.getattr(self, 'food_name') != None and self.getattr(self, 'servings') != None:
+    if self.getattr(self, 'food_name') is not None and self.getattr(self, 'servings') is not None:
       return True
     return False
 
@@ -148,7 +148,7 @@ class Exercise(Request):
       return "I'm having troubles communicating with the server. Please try again later."  
   
   def is_valid(self):
-    if self.getattr(self, 'exercise_name') != None and self.getattr(self, 'duration') != None:
+    if self.getattr(self, 'exercise_name') is not None and self.getattr(self, 'duration') is not None:
       return True
     return False
 
