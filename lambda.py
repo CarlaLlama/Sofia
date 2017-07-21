@@ -109,8 +109,8 @@ class WhatIAteRequest(Request):
 
   def speech_output(self):
     try:
-      self.api.add_food(getattr(self, 'food_name'))
-      return "Ok fatty naughty"
+      calories = self.api.add_food(getattr(self, 'food_name'))
+      return "Ok, you just had" + calories
     except RuntimeError:
       return "I'm having troubles communicating with the server. Please try again later."  
 
@@ -180,9 +180,9 @@ class SofiaAPI:
         print(food_description)
         food_id = foods[0]['food_id']
         food_name = foods[0]['food_name']
-        self.get_calories(food_description)
         #self.fs.food_entry_create(food_id, food_name, 0, 1, "breakfast", date=None)
         print(food_description)
+        self.get_calories(food_description)
     return "Could not find this food type."
 
   def get_calories(self, str):
@@ -195,12 +195,14 @@ class SofiaAPI:
           return 0
 
   def configure_me(self, height, weight, age, gender):
-    self.fs.profile_create(user_id=None)
-    if weight:
-        if height:
-            return self.set_weight(weight, height)
-        else:
-            return self.set_weight(weight, 180)
+      return "2000"
+    # self.fs.profile_create(user_id=None)
+
+    # if weight:
+    #     if height:
+    #         return self.set_weight(weight, height)
+    #     else:
+    #         return self.set_weight(weight, 180)
 
     return self.calculate("calories")
 
