@@ -112,7 +112,12 @@ class WhatIAteRequest(Request):
       self.api.add_food(getattr(self, 'food_name'))
       return "Ok fatty naughty"
     except RuntimeError:
-      return "I'm having troubles communicating with the server. Please try again later."  
+      return "I'm having troubles communicating with the server. Please try again later."
+
+  def is_valid(self):
+    if self.getattr(self, 'food_name') != None and self.getattr(self, 'servings') != None:
+      return True
+    return False
 
 def what_I_ate(api, intent, session):
   
@@ -142,6 +147,11 @@ class Exercise(Request):
       return "Good for you"
     except RuntimeError:
       return "I'm having troubles communicating with the server. Please try again later."  
+  
+  def is_valid(self):
+    if self.getattr(self, 'exercise_name') != None and self.getattr(self, 'duration') != None:
+      return True
+    return False
 
 def exercise(api, intent, session):
   should_end_session = False
