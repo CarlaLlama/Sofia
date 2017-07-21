@@ -121,7 +121,6 @@ def exercise(api, intent, session):
 
 class SofiaAPI:
   def __init__(self, intent_request, session):
-    client = myfitnesspal.Client('intern_hackathon')
     self.session = session
     # self.request_date = datetime.strptime(intent_request['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
 
@@ -130,7 +129,7 @@ class SofiaAPI:
     response = urllib.request.urlopen(req)
     html = response.read()
     return html
-  
+
   def calculate_oauth_signature(self, url):
     key = "88705826bc964b5185709b58777d9b34&e053a5709b5243569f730e5a5200e9ee"
     hashed = hmac.new(key, url, sha1)
