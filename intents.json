@@ -20,7 +20,7 @@
         },
         {
           "name": "gender",
-          "type": "Sofia.GENDER"
+          "type": "Sofia_GENDER"
         }
       ]
     },
@@ -55,7 +55,7 @@
       "slots": [
         {
           "name": "type",
-          "type": "Sofia.RESPONSE_TYPE"
+          "type": "Sofia_RESPONSE_TYPE"
         }
       ]
     }
