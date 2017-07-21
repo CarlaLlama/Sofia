@@ -7,6 +7,7 @@ For additional samples, visit the Alexa Skills Kit Getting Started guide at
 http://amzn.to/1LGWsLG
 """
 from __future__ import print_function
+import json
 from datetime import datetime, date, time
 import urllib
 import random
@@ -23,6 +24,42 @@ oauth_version = "oauth_version=1.0"
 request_url = "http://platform.fatsecret.com/rest/server.api"
 format = "format=json"
 calorie_count = 0
+
+class Request:
+  def parse_slots(self, intent):
+    print(intent['slots'])
+    for slot in intent['slots'].keys():
+      if 'value' in intent['slots'][slot]:
+        setattr(self, slot, intent['slots'][slot]['value'])
+    
+class ConfigureMeRequest(Request):
+  def __init__(self, api, intent, session):
+    self.parse_slots(intent)
+    self.api = api
+    self.card_title = 'ConfigureMe'
+  
+  def reprompt_text(self):
+    if self.is_valid:
+      return self.speech_output()
+    else:
+      return "I'm not sure what your height and weight is. " \
+              "You can tell me by saying, " \
+              "I am x centimeters high and I weight y kilos"
+  
+  def speech_output(self):
+    if self.is_valid:
+      try:
+        calories = self.api.configure_me(getattr(self, 'height'), getattr(self, 'weight'), None, None)
+        return "With your height and weigth we calculate that you should consume daily: " + calories + "!"
+      except RuntimeError:
+        return "I'm having troubles communicating with the server. Please try again later."  
+    else:
+      return "I'm not sure what your height and weight is. Please try again."
+
+  def is_valid(self):
+    if self.height != None and self.weight != None:
+      return True
+    return False
 
 class SofiaAPI:
   def __init__(self, intent_request, session):
@@ -200,13 +237,10 @@ def create_favorite_color_attributes(favorite_color):
 def configure(api, intent, session):
   """ Configures user data
   """
-  card_title = intent['name']
-  session_attributes = {}
   should_end_session = False
-  speech_output = "I now know your height and weight "
-  reprompt_text = "" 
-  return build_response(session_attributes, build_speechlet_response(
-        card_title, speech_output, reprompt_text, should_end_session))
+  configure_me_request = ConfigureMeRequest(api, intent, session)  
+  return build_response({}, build_speechlet_response(
+        configure_me_request.card_title, configure_me_request.speech_output(), configure_me_request.reprompt_text(), should_end_session))
 
 def set_color_in_session(intent, session):
     """ Sets the color in the session and prepares the speech to reply to the
